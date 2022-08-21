@@ -7,23 +7,22 @@
 
 import SwiftUI
 
-struct Note:Identifiable {
-	var id = UUID().uuidString
-	var note: String
-	var date: Date
-	var cardColor: Color
+struct Response: Codable {
+	var notes: [Note]
 }
 
+struct Note: Codable {
+	var _id: String
+	var note: String
+	var color: String
+	var date: Double
+	
+	var getDate: Date {
+		return Date(timeIntervalSince1970: date)
+	}
+}
 func getSampleDate(offset: Int) -> Date {
 	let calendar = Calendar.current
 	let date = calendar.date(byAdding: .day, value: offset, to: Date())
 	return date ?? Date()
 }
-
-var notes: [Note] = [
-	Note(note: "Note 1", date: getSampleDate(offset: 1), cardColor: Color("Skin")),
-	Note(note: "Note 2", date: getSampleDate(offset: -10), cardColor: Color("Purple")),
-	Note(note: "Note 3", date: getSampleDate(offset: -15), cardColor: Color("Green")),
-	Note(note: "Note 4", date: getSampleDate(offset: 10), cardColor: Color("Blue")),
-	Note(note: "Note 5", date: getSampleDate(offset: -3), cardColor: Color("Orange"))
-]

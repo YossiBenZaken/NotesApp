@@ -7,10 +7,13 @@
 
 import SwiftUI
 
+
+
 struct HomeView: View {
 	
 	@State var showColors: Bool = false
 	@State var animateBtn: Bool = false
+	@State private var notes = [Note]()
 	var body: some View {
 		HStack(spacing: 0.0) {
 			// MARK: Sidebar
@@ -25,6 +28,9 @@ struct HomeView: View {
 			}
 			// MARK: Main Content
 			MainContent()
+		}
+		.task {
+			await loadData()
 		}
 		#if os(macOS)
 		.ignoresSafeArea()
@@ -67,7 +73,7 @@ struct HomeView: View {
 						.frame(maxWidth:.infinity, alignment: .leading)
 					let columns = Array(repeating: GridItem(.flexible(), spacing: isMacOs() ? 25 : 15), count: isMacOs() ? 3 : 1)
 					LazyVGrid(columns: columns, spacing: 25) {
-						ForEach(notes) { note in
+						ForEach(notes, id:\._id) { note in
 							CardView(note)
 						}
 					}
@@ -89,7 +95,7 @@ struct HomeView: View {
 				.multilineTextAlignment(.leading)
 				.frame(maxWidth: .infinity, alignment: .leading)
 			HStack {
-				Text(note.date, style: .date)
+				Text(note.getDate, style: .date)
 					.foregroundColor(.black)
 					.opacity(0.8)
 				Spacer(minLength: 0)
@@ -107,7 +113,7 @@ struct HomeView: View {
 			.padding(.top,55)
 		}
 		.padding()
-		.background(note.cardColor)
+		.background(Color(note.color))
 		.cornerRadius(18)
 	}
 	
@@ -178,9 +184,21 @@ struct HomeView: View {
 				.background(.black)
 				.clipShape(Circle())
 		}
-		.rotationEffect(.init(degrees: showColors ? 45 : 0))
 		.scaleEffect(animateBtn ? 1.1 : 1)
 		.padding(.top,30)
+	}
+	
+	func loadData() async {
+		guard let url = URL(string: "https://hidden-cliffs-36996.herokuapp.com/api/notes") else {
+			return
+		}
+		do {
+			let (data, _) = try await URLSession.shared.data(from: url)
+			let decodedResponse = try JSONDecoder().decode([Note].self, from: data)
+			notes = decodedResponse
+		} catch {
+			print(error)
+		}
 	}
 }
 
